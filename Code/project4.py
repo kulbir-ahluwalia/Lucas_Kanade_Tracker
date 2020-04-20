@@ -102,9 +102,9 @@ def affineLKTracker(tempCoords, temp, gray_image, x_range, y_range, p, sobelx, s
 	return p, deltaP, p_norm, warpedTemp, warpedVertices, feasible
 
 
-#dataset = "Bolt2"
-#dataset = "Car4"
-dataset = "DragonBaby"
+# dataset = "Bolt2"
+# dataset = "Car4"
+# dataset = "DragonBaby"
 path = dataset + "/img/*.jpg"
 outputPath = "output/" + dataset + "/"
 
