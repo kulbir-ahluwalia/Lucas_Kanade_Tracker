@@ -3,6 +3,15 @@ import cv2
 import numpy as np
 
 
+def getWeight(error, delta=1):
+	norm = np.linalg.norm(error)
+
+	if norm < delta:
+		return 0.5
+	else:
+		return 1
+
+
 def getHomogenCoords(x_range,y_range):
 	a = (x_range[1] - x_range[0]) + 1
 	b = (y_range[1] - y_range[0]) + 1
@@ -35,7 +44,7 @@ def warpTF(tempCoords, p, x_range, y_range):
 	new = np.dot(affineWarpMat,tempCoords)
 	new = new.astype(int)
 
-	return new_coordinates,warpedVertices
+	return new,warpedVertices
 
 
 def getPixelArray(image,coordinates):
@@ -49,7 +58,7 @@ def getTemplateArray(template, x_range, y_range):
 	tempCoords = getHomogenCoords(x_range,y_range)
 	p = np.array([[0,0,0,0,0,0]]).T
 	newCoords, newVer = warpTF(tempCoords, p ,x_range, y_range)
-	array = getPixelArray(template, new_coordinates)
+	array = getPixelArray(template, newCoords)
 	
 	return array
 
@@ -77,15 +86,18 @@ def getSteepestDescent(sobelx,sobely,new_coordinates,old_coordinates):
 	return steepest
 
 
-def affineLKTracker(tempCoords, temp, gray_image, x_range, y_range, p, sobelx, sobely):
+def affineLKTracker(tempCoords, temp, gray_image, x_range, y_range, p, sobelx, sobely, robust):
 
 	warpedTemp, warpedVertices = warpTF(tempCoords, p, x_range, y_range)
 
 	if isFeasible(warpedTemp,gray_image):
 		feasible = True
 		img_arr = getPixelArray(gray_image,warpedTemp)
-
 		error = temp - img_arr
+		if robust == True:
+			weight = getWeight(error, delta=1)
+		else:
+			weight = 1
 		steepest = getSteepestDescent(sobelx, sobely, warpedTemp, tempCoords)
 		SDProd = np.dot(steepest.T, error.T)
 		Hess = np.dot(steepest.T, steepest)
@@ -93,7 +105,7 @@ def affineLKTracker(tempCoords, temp, gray_image, x_range, y_range, p, sobelx, s
 		deltaP = np.dot(Hinv, SDProd)
 		p_norm = np.linalg.norm(deltaP)
 		p = np.reshape(p,(6,1))
-		p = p + deltaP
+		p = p + deltaP*weight
 
 	else:
 		feasible = False
@@ -103,8 +115,8 @@ def affineLKTracker(tempCoords, temp, gray_image, x_range, y_range, p, sobelx, s
 	return p, deltaP, p_norm, warpedTemp, warpedVertices, feasible
 
 
-##dataset = "Bolt2"
-##dataset = "Car4"
+#dataset = "Bolt2"
+#dataset = "Car4"
 dataset = "DragonBaby"
 path = dataset + "/img/*.jpg"
 outputPath = "output/" + dataset + "/"
@@ -147,7 +159,7 @@ for img in sorted(glob.glob(path)):
 	sobely = cv2.Sobel(gray,cv2.CV_64F,0,1,ksize=dataDict[dataset]["ksize"])
 
 	while True:
-		params, deltaP, p_norm, warpedTemp, new_vertex, feasible = affineLKTracker(tempCoords,temp,gray,x_range,y_range,params,sobelx,sobely)
+		params, deltaP, p_norm, warpedTemp, new_vertex, feasible = affineLKTracker(tempCoords,temp,gray,x_range,y_range,params,sobelx,sobely, robust=True)
 		if (p_norm <= threshold) or (feasible == False):
 			break
 
