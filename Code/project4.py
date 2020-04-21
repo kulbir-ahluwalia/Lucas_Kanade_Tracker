@@ -103,8 +103,8 @@ def affineLKTracker(tempCoords, temp, gray_image, x_range, y_range, p, sobelx, s
 
 
 #dataset = "Bolt2"
-#dataset = "Car4"
-dataset = "DragonBaby"
+dataset = "Car4"
+#dataset = "DragonBaby"
 path = dataset + "/img/*.jpg"
 outputPath = "output/" + dataset + "/"
 
