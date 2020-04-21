@@ -62,7 +62,6 @@ def isFeasible(coorinate_array, img) :
 	else:
 		return True
 
-   
 def getSteepestDescent(sobelx,sobely,new_coordinates,old_coordinates):
 
 	gradX = getPixelArray(sobelx,new_coordinates)
