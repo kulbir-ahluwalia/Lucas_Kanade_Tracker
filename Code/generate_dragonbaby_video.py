@@ -1,5 +1,5 @@
 import cv2
-out = cv2.VideoWriter('fight_baby_fight.mp4',cv2.VideoWriter_fourcc('m','p','4','v'), 5, (640, 360))
+out = cv2.VideoWriter('fight_baby_fight.mp4',cv2.VideoWriter_fourcc('m','p','4','v'), 10, (640, 360))
 
 #out = cv2.VideoWriter('output_yellow.mp4', cv2.VideoWriter_fourcc(*'XVID'), 5, (640, 480))
 

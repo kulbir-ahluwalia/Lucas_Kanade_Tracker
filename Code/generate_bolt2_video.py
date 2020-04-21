@@ -1,5 +1,5 @@
 import cv2
-out = cv2.VideoWriter('bhaag_bolt_bhaag.mp4',cv2.VideoWriter_fourcc('m','p','4','v'), 5, (480, 270))
+out = cv2.VideoWriter('bhaag_bolt_bhaag.mp4',cv2.VideoWriter_fourcc('m','p','4','v'), 30, (480, 270))
 
 #/home/kulbir/Desktop/Lucas_Kanade_Tracker/Code
 #out = cv2.VideoWriter('output_yellow.mp4', cv2.VideoWriter_fourcc(*'XVID'), 5, (640, 480))
