@@ -1,5 +1,5 @@
 import cv2
-out = cv2.VideoWriter('jithe_jawange_gaddi_modange.mp4',cv2.VideoWriter_fourcc('m','p','4','v'), 5, (640, 480))
+out = cv2.VideoWriter('jithe_jawange_gaddi_modange.mp4',cv2.VideoWriter_fourcc('m','p','4','v'), 5, (360, 240))
 
 #out = cv2.VideoWriter('output_yellow.mp4', cv2.VideoWriter_fourcc(*'XVID'), 5, (640, 480))
 
@@ -7,7 +7,7 @@ imgArray = []
 for ind in range(0,659,1):
     print(ind)
 
-    plt_name = './output/Car4' + str(ind) + '.png'
+    plt_name = './output/Car4/' + str(ind) + '.jpg'
     plot_img = cv2.imread(plt_name)
     imgArray.append(plot_img)
 

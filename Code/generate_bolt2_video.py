@@ -1,13 +1,14 @@
 import cv2
-out = cv2.VideoWriter('bhaag_bolt_bhaag.mp4',cv2.VideoWriter_fourcc('m','p','4','v'), 5, (640, 480))
+out = cv2.VideoWriter('bhaag_bolt_bhaag.mp4',cv2.VideoWriter_fourcc('m','p','4','v'), 5, (480, 270))
 
+#/home/kulbir/Desktop/Lucas_Kanade_Tracker/Code
 #out = cv2.VideoWriter('output_yellow.mp4', cv2.VideoWriter_fourcc(*'XVID'), 5, (640, 480))
 
 imgArray = []
 for ind in range(0,293,1):
     print(ind)
 
-    plt_name = './output/Bolt2' + str(ind) + '.png'
+    plt_name = './output/Bolt2/' + str(ind) + '.jpg'
     plot_img = cv2.imread(plt_name)
     imgArray.append(plot_img)
 
