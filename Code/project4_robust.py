@@ -3,11 +3,12 @@ import cv2
 import numpy as np
 
 
-def getWeight(error, delta=1):
-	norm = np.linalg.norm(error)
+def getWeight(error, delta=10):
+	#norm = np.linalg.norm(error)
+	#print(error)
 
-	if norm < delta:
-		return 0.5
+	if error > delta:
+		return (abs(error)-delta)*0.5/abs(error)
 	else:
 		return 1
 
@@ -86,18 +87,24 @@ def getSteepestDescent(sobelx,sobely,new_coordinates,old_coordinates):
 	return steepest
 
 
-def affineLKTracker(tempCoords, temp, gray_image, x_range, y_range, p, sobelx, sobely, robust):
+def affineLKTracker(tempCoords, temp, gray_image, x_range, y_range, p, sobelx, sobely, prevDeltaP, robust=True, delta=10):
 
 	warpedTemp, warpedVertices = warpTF(tempCoords, p, x_range, y_range)
 
 	if isFeasible(warpedTemp,gray_image):
 		feasible = True
 		img_arr = getPixelArray(gray_image,warpedTemp)
-		error = temp - img_arr
-		if robust == True:
-			weight = getWeight(error, delta=1)
-		else:
-			weight = 1
+		#print(temp - img_arr)
+		error = np.zeros(temp.shape)
+		#print(temp)
+		for i in range(len(temp[0])):
+			error[0][i] = (temp[0][i] - img_arr[0][i])
+			error[0][i] *= getWeight(error[0][i], delta)
+		# if robust == True:
+		# 	weight = getWeight(error, delta=delta)
+		# else:
+		# 	weight = 1
+		# error = weight*error
 		steepest = getSteepestDescent(sobelx, sobely, warpedTemp, tempCoords)
 		SDProd = np.dot(steepest.T, error.T)
 		Hess = np.dot(steepest.T, steepest)
@@ -105,12 +112,14 @@ def affineLKTracker(tempCoords, temp, gray_image, x_range, y_range, p, sobelx, s
 		deltaP = np.dot(Hinv, SDProd)
 		p_norm = np.linalg.norm(deltaP)
 		p = np.reshape(p,(6,1))
-		p = p + deltaP*weight
+		p = p + deltaP#*weight
 
 	else:
 		feasible = False
-		deltaP = np.array([[0,0,0,0,0,0]]).T
+		deltaP = prevDeltaP
 		p_norm = np.linalg.norm(deltaP)
+		p = np.reshape(p,(6,1))
+		p = p - deltaP
 
 	return p, deltaP, p_norm, warpedTemp, warpedVertices, feasible
 
@@ -122,9 +131,9 @@ path = dataset + "/img/*.jpg"
 outputPath = "output_robust/" + dataset + "/"
 
 dataDict = {}
-dataDict["Bolt2"] = {"x_range": [265, 308], "y_range": [80, 145], "threshold": 0.0159, "ksize": 5}
-dataDict["Car4"] = {"x_range": [65, 180], "y_range": [45, 140], "threshold": 0.01, "ksize": 5}
-dataDict["DragonBaby"] = {"x_range": [90, 240], "y_range": [70, 300], "threshold": 0.078, "ksize": 3}
+dataDict["Bolt2"] = {"x_range": [265, 308], "y_range": [80, 145], "threshold": 0.0159, "ksize": 5, "delta": 100}
+dataDict["Car4"] = {"x_range": [65, 180], "y_range": [45, 140], "threshold": 0.045, "ksize": 3, "delta": 50}
+dataDict["DragonBaby"] = {"x_range": [90, 240], "y_range": [70, 300], "threshold": 0.078, "ksize": 3, "delta": 130}
 
 first = cv2.imread(dataset + "/img/0001.jpg")  
 first = cv2.cvtColor(first,cv2.COLOR_BGR2GRAY)
@@ -157,9 +166,10 @@ for img in sorted(glob.glob(path)):
 	gray = (gray*((firstMean/grayMean))).astype(float)
 	sobelx = cv2.Sobel(gray,cv2.CV_64F,1,0,ksize=dataDict[dataset]["ksize"])
 	sobely = cv2.Sobel(gray,cv2.CV_64F,0,1,ksize=dataDict[dataset]["ksize"])
+	deltaP = np.array([[0,0,0,0,0,0]]).T
 
 	while True:
-		params, deltaP, p_norm, warpedTemp, new_vertex, feasible = affineLKTracker(tempCoords,temp,gray,x_range,y_range,params,sobelx,sobely, robust=True)
+		params, deltaP, p_norm, warpedTemp, new_vertex, feasible = affineLKTracker(tempCoords, temp, gray, x_range, y_range, params, sobelx, sobely, deltaP, robust=True, delta=dataDict[dataset]["delta"])
 		if (p_norm <= threshold) or (feasible == False):
 			break
 
